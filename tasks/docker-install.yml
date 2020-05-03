@@ -1,0 +1,44 @@
+---
+- name:  "Docker: Download Docker version={{docker_version}}"
+  win_get_url:
+    url: 'https://download.docker.com/components/engine/windows-server/19.03/docker-19.03.5.zip'
+    dest: 'c:\docker.zip'
+    force: yes
+  become_method: runas
+
+- name: "Docker: Install Docker"
+  win_shell: |
+    Set-ExecutionPolicy Bypass -Scope Process -Force;
+    Microsoft.PowerShell.Archive\Expand-Archive 'c:\docker.zip' -DestinationPath $Env:ProgramFiles -Force -Verbose
+  become_method: runas
+
+- name: "Docker: Enable Windows Containers Features"
+  win_shell: $null = Install-WindowsFeature containers
+  become_method: runas  
+  register: win_feature
+  notify: win_reboot-handler
+
+- meta: flush_handlers
+
+- name: "Docker: Add Docker to PATH"
+  win_shell: |
+    $env:path += ";$env:ProgramFiles\docker"
+    $newPath = "$env:ProgramFiles\docker;" +
+    [Environment]::GetEnvironmentVariable("PATH",
+    [EnvironmentVariableTarget]::Machine)
+    [Environment]::SetEnvironmentVariable("PATH", $newPath,
+    [EnvironmentVariableTarget]::Machine)
+  become: true
+  become_method: runas
+
+- name: "Docker: Register and Start Docker Service"
+  win_shell: |
+    dockerd --register-service
+  become: true
+  become_method: runas
+
+- name: Checking if Docker Windows Service is started
+  win_service:
+    name: docker
+    start_mode: auto
+    state: started

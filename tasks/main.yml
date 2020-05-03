@@ -1,0 +1,11 @@
+# Global Windows ADS Agent Install Role:
+# * this role can be run to install docker on windows
+#
+---
+- include_tasks: docker-check.yml
+  tags: stats
+
+- include_tasks: docker-install.yml
+  when: not docker_service_check.exists
+  tags: install
+

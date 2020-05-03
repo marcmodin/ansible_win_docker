@@ -1,0 +1,5 @@
+---
+- name: Checking if Docker Windows Service is already configured
+  win_service:
+    name: docker
+  register: docker_service_check
