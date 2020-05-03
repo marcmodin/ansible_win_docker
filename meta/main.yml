@@ -1,0 +1,7 @@
+---
+galaxy_info:
+# allow duplicates to be called multiple times in a play
+# *remember to '- meta: flush_handlers' after each call if issues with notify
+allow_duplicates: true
+# Import handlers from roles directory
+dependencies: []
